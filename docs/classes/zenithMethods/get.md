@@ -23,7 +23,7 @@ $tg = ZG::create(BOT_TOKEN);
 $update = $tg->getUpdate();
 ```
 
-## getMessage 
+## getMessage
 Метод возвращает DTO-объект со всеми данными сообщения.
 
 ### Возвращает
@@ -32,6 +32,17 @@ $update = $tg->getUpdate();
 ### Пример использования
 ```php
 $text = $tg->getMessage()->text;
+```
+
+## getReplyMessage
+Метод возвращает DTO-объект со всеми данными отвеченного сообщения.
+
+### Возвращает
+`MessageDto` - Объект, содержащий информацию об отвеченном сообщении
+
+### Пример использования
+```php
+$text = $tg->getMessageReply()->text;
 ```
 
 ## getChatId
@@ -43,6 +54,17 @@ $text = $tg->getMessage()->text;
 ### Пример использования
 ```php
 $chat_id = $tg->getChatId();
+```
+
+## getMsgThreadId
+Метод возвращает ID темы/ветки (важно для форумов).
+
+### Возвращает
+`int|null` - ID темы или `null`, если его нет в событии.
+
+### Пример использования
+```php
+$thread_id = $tg->getMsgThreadId();
 ```
 
 ## getChat
@@ -166,6 +188,28 @@ $query_id = $tg->getQueryId();
 $callback_data = $tg->getCallbackData();
 ```
 
+## getIsForum
+Метод возвращает true, если обновление пришло из форума и false, если нет.
+
+### Возвращает
+`bool` - Сообщение пришло из форума? true/false.
+
+### Пример использования
+```php
+$isForum = $tg->getIsForum();
+```
+
+## getIsBot
+Метод возвращает true, если пользователь бот и false, если нет.
+
+### Возвращает
+`bool` - Является ли пользователь ботом? true/false.
+
+### Пример использования
+```php
+$isBot = $tg->getIsBot();
+```
+
 ---
 
 ## Комплексный пример: Эхо-бот
@@ -187,4 +231,17 @@ if ($type === 'text') {
     $responseText = "Вы написали: " . $text;
     $tg->sendMessage($chat_id, $responseText);
 }
+
+$tg->sendOk();
 ```
+
+
+1.  
+
+2.  **`getIsForum(): bool`** — Проверка, является ли чат форумом.
+
+3.  **`getIsBot(): bool`** — Проверка, является ли пользователь ботом.
+
+4.  **`getReplyMessage(): ?MessageDto`** — Получение DTO сообщения, на которое ответили.
+
+5.  **`getStorage(): ?StorageInterface`** — (В документации назван `storage()`, в коде — `getStorage()`).

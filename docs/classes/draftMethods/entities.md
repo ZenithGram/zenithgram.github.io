@@ -5,7 +5,7 @@ sidebarDepth: 0
 ---
 
 # entities
-Метод устанавливает особые сущности для сообщения, которые содержат в себе оформление сообщения  
+Метод устанавливает особые сущности для сообщения, которые содержат в себе оформление сообщения в режиме стриминга
 
 :::warning Не совместим с parseMode
 Методы entities и parseMode взаимоисключающие и не могут быть определены вместе.
@@ -29,13 +29,11 @@ $tg = ZG::create(BOT_TOKEN);
 $bot = new Bot($tg);
 
 $bot->onCommand('stream', '/stream')->func(function (ZG $tg) {
-    $entities = [
-        [
-            'offset' => 0,
-            'length' => 9,
-            'type' => 'italic'
-        ]
-    ];
+    $entities = [[
+        'offset' => 0,
+        'length' => 9,
+        'type' => 'italic',
+    ]];
 
     $draft = $tg->msgDraft("⏳ Init...")
         ->entities($entities)
