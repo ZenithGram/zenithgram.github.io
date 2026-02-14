@@ -351,6 +351,7 @@ export default defineConfig({
                             {text: 'forceReply', link: '/classes/messageMethods/forceReply'},
 
                             {text: 'parseMode', link: '/classes/messageMethods/parseMode'},
+                            {text: 'entities', link: '/classes/messageMethods/entities'},
                             {text: 'reply', link: '/classes/messageMethods/reply'},
                             {text: 'params', link: '/classes/messageMethods/params'},
 
@@ -358,6 +359,20 @@ export default defineConfig({
                             {text: 'editText', link: '/classes/messageMethods/editText'},
                             {text: 'editCaption', link: '/classes/messageMethods/editCaption'},
                             {text: 'editMedia', link: '/classes/messageMethods/editMedia'},
+                        ]
+                    },
+
+                    {
+                        text: 'MessageDraft',
+                        link: '/classes/draft',
+                        collapsed: true,
+                        items: [
+                            {text: 'text', link: '/classes/draftMethods/text'},
+
+                            {text: 'parseMode', link: '/classes/draftMethods/parseMode'},
+                            {text: 'entities', link: '/classes/draftMethods/entities'},
+
+                            {text: 'send', link: '/classes/draftMethods/send'},
                         ]
                     },
 
