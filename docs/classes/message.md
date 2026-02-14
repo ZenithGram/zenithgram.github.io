@@ -18,7 +18,7 @@ sidebarDepth: 0
 ### Возвращает
 `Message` - экземпляр класса `Message`.
 
-### Пример использования
+## Пример использования
 ```php
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
