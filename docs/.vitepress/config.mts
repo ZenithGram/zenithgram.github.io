@@ -217,6 +217,7 @@ export default defineConfig({
                     {text: 'Получение обновлений', link: '/using/getting-updates'},
                     {text: 'Конструктор сообщений', link: '/using/messages'},
                     {text: 'Обработчики', link: '/using/handlers'},
+                    {text: 'Аттрибуты', link: '/using/attributes'},
                     {text: 'Диалоги FSM', link: '/using/fsm'},
                     {text: 'Внедрение зависимостей', link: '/using/reflection'},
                     {text: 'Middleware', link: '/using/middleware'},
@@ -327,6 +328,8 @@ export default defineConfig({
                             {text: 'query', link: '/classes/actionMethods/query'},
                         ]
                     },
+
+                    {text: 'Attribute', link: '/classes/attributes'},
 
                     {
                         text: 'Message',

@@ -1,6 +1,6 @@
 ---
-title: setText
-description: "Устанавливает новый текст для стриминга"
+title: send
+description: "Отправляет или изменяет сообщение в режиме стриминга"
 sidebarDepth: 0
 ---
 
