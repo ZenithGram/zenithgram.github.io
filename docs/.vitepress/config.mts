@@ -218,6 +218,7 @@ export default defineConfig({
                     {text: 'Конструктор сообщений', link: '/using/messages'},
                     {text: 'Обработчики', link: '/using/handlers'},
                     {text: 'Аттрибуты', link: '/using/attributes'},
+                    {text: 'Топики', link: '/using/topic'},
                     {text: 'Диалоги FSM', link: '/using/fsm'},
                     {text: 'Внедрение зависимостей', link: '/using/reflection'},
                     {text: 'Middleware', link: '/using/middleware'},
@@ -243,9 +244,8 @@ export default defineConfig({
                             {text: 'file', link: '/classes/zenithMethods/file'},
 
                             {text: 'initVars', link: '/classes/zenithMethods/initVars'},
-                            {text: 'get', link: '/classes/zenithMethods/get'},
-
-                            {text: 'defaultParseMode', link: '/classes/zenithMethods/defaultParseMode'},
+                            {text: 'get-методы', link: '/classes/zenithMethods/get'},
+                            {text: 'topic-методы', link: '/classes/zenithMethods/topic'},
 
                             {text: 'sendMessage', link: '/classes/zenithMethods/sendMessage'},
                             {text: 'reply', link: '/classes/zenithMethods/reply'},
