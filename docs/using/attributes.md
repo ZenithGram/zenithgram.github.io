@@ -1,59 +1,53 @@
----
-description: Использование атрибутов PHP 8 для создания контроллеров и маршрутизации.
----
-
 # Атрибуты и Контроллеры
-ZenithGram поддерживает современный подход к организации кода с использованием **Атрибутов PHP 8**. Вместо того чтобы описывать все маршруты в одном файле через цепочку вызовов `$bot->on...`, вы можете создавать классы-контроллеры и помечать методы специальными атрибутами.
 
-Это делает код чище, позволяет группировать логику по смыслу и использовать возможности Dependency Injection.
+Использование **PHP 8 Attributes** позволяет писать чистый, модульный код. Вместо того чтобы нагромождать сотни строк с `$bot->onCommand(...)` в одном файле, вы создаете **Контроллеры** — отдельные классы, отвечающие за конкретную логику (например, `AdminController`, `ShopController`).
 
-## Как это работает
-1. Вы создаете класс (Контроллер).
-2. Создаете публичные методы для обработки событий.
-3. Добавляете к методам атрибуты (например, `#[OnStart]`, `#[OnCommand]`).
-4. Регистрируете контроллер в боте.
+## Быстрый старт: Автообнаружение (Auto-discovery)
 
-Библиотека автоматически просканирует класс, создаст маршруты и привяжет их к вашим методам.
+Самый современный способ работы — сложить все контроллеры в одну папку и позволить библиотеке самой найти их.
 
-## Базовый пример
-Создадим простой контроллер `MyController.php`:
+### 1. Создайте структуру папок
+```text
+/src
+  /Controllers
+    StartController.php
+    GameController.php
+index.php
+```
+
+### 2. Напишите контроллер
+Файл: `src/Controllers/StartController.php`
 
 ```php
 <?php
 namespace App\Controllers;
 
 use ZenithGram\ZenithGram\Attributes\OnStart;
-use ZenithGram\ZenithGram\Attributes\OnCommand;
-use ZenithGram\ZenithGram\Attributes\OnText;
+use ZenithGram\ZenithGram\Attributes\Btn;
 use ZenithGram\ZenithGram\ZG;
 
-class MyController
+class StartController
 {
-    // Обработка команды /start
     #[OnStart]
-    public function start(ZG $tg): void
+    public function welcome(ZG $tg): void
     {
-        $tg->msg("Добро пожаловать в бота!")->send();
+        $tg->msg("Привет! Давай сыграем?")
+           // Мы просто указываем ID кнопки 'play_game',
+           // а её текст и обработчик определены в методе ниже.
+           ->kbd([['play_game']]) 
+           ->send();
     }
 
-    // Обработка команды !ping
-    #[OnCommand('!ping')]
-    public function ping(ZG $tg): void
+    // Регистрируем кнопку с ID 'play_game' и текстом '🎮 Играть'
+    #[Btn('play_game', '🎮 Играть')]
+    public function startGame(ZG $tg): void
     {
-        $tg->msg("Pong!")->send();
-    }
-
-    // Обработка текста "Привет"
-    #[OnText('Привет')]
-    public function greeting(ZG $tg): void
-    {
-        $tg->msg("И тебе привет!")->send();
+        $tg->msg("Игра началась! 🚀")->send();
     }
 }
 ```
 
-## Регистрация контроллера
-Чтобы бот узнал о вашем контроллере, его нужно зарегистрировать перед запуском `$bot->run()`.
+### 3. Подключите в `index.php`
 
 ```php
 <?php
@@ -61,55 +55,165 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use ZenithGram\ZenithGram\ZG;
 use ZenithGram\ZenithGram\Bot;
-use App\Controllers\MyController; // Не забудьте подключить ваш класс
 
 $tg = ZG::create(BOT_TOKEN);
 $bot = new Bot($tg);
 
-// Включаем рефлексию (рекомендуется для контроллеров)
+// 1. Включаем рефлексию (чтобы работали UserDto, ChatDto и аргументы)
 $bot->reflection();
 
-// Регистрируем массив контроллеров
-$bot->attributes()->registerControllers([
-    MyController::class,
-    // OtherController::class,
-]);
+// 2. Сканируем папку
+$bot->attributes()->scanDirectory(
+    directory: __DIR__ . '/src/Controllers', 
+    rootNamespace: 'App\Controllers'
+);
 
 $bot->run();
 ```
 
-## Dependency Injection (Внедрение зависимостей)
-При использовании атрибутов настоятельно рекомендуется включить `$bot->reflection()`. Это позволит вам запрашивать необходимые объекты (DTO, сервисы) прямо в аргументах метода, не извлекая их вручную из `$tg`.
+## Внедрение зависимостей (Dependency Injection)
+В реальных проектах контроллерам нужны доступ к базе данных, логгеру или API. Для этого используется метод `setFactory`. Это "легковесный DI", который работает очень быстро.
+
+### Настройка Фабрики
+В `index.php` создайте ваши сервисы (например, PDO) и передайте их в контроллеры через `match`:
 
 ```php
-use ZenithGram\ZenithGram\Attributes\OnCommand;
-use ZenithGram\ZenithGram\Dto\UserDto;
-use ZenithGram\ZenithGram\ZG;
+use PDO;
+use App\Controllers\GameController;
+// Подключение к БД
+$db = new PDO('sqlite:database.db');
 
-class StoreController 
-{
-    // Маршрут: /buy {item_id}
-    #[OnCommand('/buy {item_id}')]
-    public function buyItem(ZG $tg, UserDto $user, int $item_id, DatabaseService $db): void
-    {
-        // $user - автоматически заполненный DTO пользователя
-        // $item_id - аргумент из команды
-        // $db - ваш сервис (если настроен DI-контейнер)
+// Настраиваем фабрику
+$bot->attributes()->setFactory(function (string $class) use ($db) {
+    return match ($class) {
+        // Если библиотека просит создать GameController, мы отдаем его с БД
+        GameController::class => new $class($db),
         
-        $db->createOrder($user->id, $item_id);
-        $tg->msg("Заказ #$item_id оформлен для {$user->firstName}")->send();
+        // Для остальных классов возвращаем null (библиотека создаст их через new $class)
+        default => null, 
+    };
+});
+
+// После настройки фабрики запускаем сканирование
+$bot->attributes()->scanDirectory(__DIR__ . '/src/Controllers', 'App\Controllers');
+```
+
+### Использование в контроллере
+Теперь вы можете объявить конструктор и использовать зависимость:
+
+```php
+use PDO;
+
+class GameController
+{
+    // PHP 8 Constructor Promotion: свойство создастся автоматически
+    public function __construct(
+        private PDO $db
+    ) {}
+
+    #[OnCommand('/stats')]
+    public function stats(ZG $tg): void
+    {
+        // Используем $this->db
+        $count = $this->db->query("SELECT count(*) FROM games")->fetchColumn();
+        $tg->msg("Всего игр сыграно: $count")->send();
     }
 }
 ```
 
-## Преимущества использования атрибутов
-1. **Структура:** Логика разбита на классы, а не свалена в кучу в `index.php`.
-2. **Читаемость:** Атрибут сразу говорит, на какое событие реагирует метод.
-3. **Автоматизация:** ID маршрутов генерируются автоматически (формат `ClassName::MethodName`), что исключает конфликты имен.
+---
 
-## Кеширование
-Сканирование атрибутов использует рефлексию, что может быть затратно по ресурсам. Библиотека автоматически кеширует карту атрибутов, если вы подключили кеш к боту.
+## Ручная регистрация (`registerControllers`)
+
+Если вы не хотите сканировать папки (например, у вас сложная модульная архитектура или всего один контроллер), вы можете передать массив классов вручную.
+
 ```php
-$bot->setCache($myCacheImplementation); // PSR-16 Cache
-// Теперь сканирование контроллеров будет происходить только один раз
+use App\Controllers\StartController;
+use App\Modules\Shop\ShopController;
+
+$bot->attributes()->registerControllers([
+    StartController::class,
+    ShopController::class, // Контроллер из другого модуля
+]);
 ```
+
+## Справочник Атрибутов
+Все атрибуты находятся в пространстве имен `ZenithGram\ZenithGram\Attributes`.
+
+### Основные команды
+| Атрибут           | Описание                                 | Пример                        |
+|:------------------|:-----------------------------------------|:------------------------------|
+| `#[OnStart]`      | Команда `/start`                         |                               |
+| `#[OnBotCommand]` | Системные команды (`/help`, `/settings`) | `#[OnBotCommand('/help')]`    |
+| `#[OnCommand]`    | Кастомные команды с параметрами          | `#[OnCommand('!ban {user}')]` |
+
+### Текст и Регулярные выражения
+| Атрибут         | Описание                    | Пример                           |
+|:----------------|:----------------------------|:---------------------------------|
+| `#[OnText]`     | Точное совпадение текста    | `#[OnText('О нас')]`             |
+| `#[OnTextPreg]` | Регулярное выражение (PCRE) | `#[OnTextPreg('/^ID: (\d+)$/')]` |
+| `#[OnMessage]`  | Fallback для любого текста  |                                  |
+
+### Кнопки и Callbacks
+| Атрибут             | Описание                                   | Пример                              |
+|:--------------------|:-------------------------------------------|:------------------------------------|
+| `#[Btn]`            | Обработка и регистрация кнопки             | `#[Btn('btn_id', 'Текст')]`         |
+| `#[OnCallback]`     | Inline-кнопка (статичная или с параметром) | `#[OnCallback('buy_{item_id}')]`    |
+| `#[OnCallbackPreg]` | Inline-кнопка (Regex)                      | `#[OnCallbackPreg('/^page_\d+$/')]` |
+
+### События и Состояния
+| Атрибут              | Описание                   | Пример                    |
+|:---------------------|:---------------------------|:--------------------------|
+| `#[OnState]`         | Активный шаг диалога (FSM) | `#[OnState('wait_name')]` |
+| `#[OnPhoto]`         | Получено фото              |                           |
+| `#[OnNewChatMember]` | Вход участника в чат       |                           |
+
+## Особенности атрибута `#[Btn]`
+Атрибут `#[Btn]` уникален тем, что принимает **два аргумента**:
+1. `$id` (обязательный) — Уникальный идентификатор кнопки.
+2. `$text` (опциональный) — Текст на кнопке.
+
+### Сценарий 1: Кнопка с текстом
+Идеально для меню. Вы задаете текст прямо в атрибуте.
+```php
+// Регистрируем: ID='profile', Текст='👤 Профиль'
+#[Btn('profile', '👤 Профиль')]
+public function showProfile(ZG $tg) { ... }
+
+// Использование в коде (достаточно указать только ID):
+$tg->msg('Меню')->kbd([['profile']])->send();
+```
+
+### Сценарий 2: Кнопка без текста
+Если текст не указан, он будет равен ID. Удобно для простых кнопок.
+
+```php
+#[Btn('Отмена')]
+public function cancel(ZG $tg) { ... }
+
+// Использование:
+$tg->msg('...')->kbd([['Отмена']])->send();
+```
+
+## Производительность и Кеширование
+Операции с атрибутами (Reflection API) и сканирование диска — ресурсоемкие задачи. Чтобы бот работал мгновенно в продакшене, **обязательно используйте кеш**.
+
+```php
+use ZenithGram\ZenithGram\Utils\SimpleFileCache;
+
+// 1. Подключаем кеш
+$cache = new SimpleFileCache(__DIR__ . '/storage/cache');
+$bot->setCache($cache);
+
+// 2. Сканируем
+$bot->attributes()->scanDirectory(...);
+```
+
+**Как это работает с кешем:**
+1. При первом запуске бот просканирует папку и все файлы. Это займет ~10-50мс.
+2. Результат сохранится в файл кеша.
+3. При всех последующих запусках (например, на каждый вебхук) бот будет загружать карту маршрутов из кеша мгновенно, не обращаясь к диску.
+
+::: warning Важно при разработке
+Если вы добавили новый метод или изменили атрибут, а бот "не видит" изменений — **удалите папку с кешем** вручную.
+:::
