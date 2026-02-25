@@ -1,7 +1,7 @@
 <script setup>
 import DefaultTheme from 'vitepress/theme'
-import Snow from './Snow.vue'
-import SnowControls from './SnowControls.vue'
+// import Snow from './Snow.vue'
+// import SnowControls from './SnowControls.vue'
 import { ref } from 'vue'
 
 const { Layout } = DefaultTheme
@@ -19,12 +19,12 @@ const snowSettings = ref({
     <!-- Здесь слоты -->
   </Layout>
 
-  <Snow
-      :enabled="snowSettings.enabled"
-      :count="snowSettings.count"
-      :speed="snowSettings.speed"
-      :height="snowSettings.height"
-  />
+<!--  <Snow-->
+<!--      :enabled="snowSettings.enabled"-->
+<!--      :count="snowSettings.count"-->
+<!--      :speed="snowSettings.speed"-->
+<!--      :height="snowSettings.height"-->
+<!--  />-->
 
-  <SnowControls v-model="snowSettings" />
+<!--  <SnowControls v-model="snowSettings" />-->
 </template>
